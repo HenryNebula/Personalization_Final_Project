@@ -27,23 +27,25 @@ Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of a
 
 ## Structure of repo
 
-* [Data pipeline function](src/data_pipeline.py), including data loading function, train-test split and cross-validation. A more detailed example can be found at [this notebook]() at root dir
+* [Data pipeline function](src/data_pipeline.py), including data loading function, train-test split and cross-validation. A more detailed example can be found at [this notebook]() at root dir. 
+
+    For now, the cross validation method doesn't support result caching and doesn't have an aggregation function for different metrics and folds. These features will be added soon, so for now, manually tuning hyper-parameters is needed. 
 * Models:
     * [Base model](src/BaseModel.py) to inherit from
     * [ALS_MF](src/ALS_MF.py) an inheritance example, using ALS method
     * kNN model is still on progress
    
    Note that every new model should override at least two functions of the base class, which are [fit](./src/BaseModel.py) and [recommend_for_all_users](./src/BaseModel.py).
-* [Evaluation module](src/Evaluator.py), only two ranking metrics are supported now (i.e., NDCG and Precision)
+* [Evaluation module](src/Evaluator.py), only two ranking metrics are supported now (i.e., NDCG and Precision).
 * [Utilities](src/utils.py) like constructing a spark session
+* [Dataset](./data/) only supports ml-1m dataset for now. ml-20m will be uploaded soon.
 
-## Local testing and debug
+## Local testing and debugging
 Say if you want to debug your own model using existing methods and functions, follow the following step:
 1. Create a directory called "test" under the root directory and after this step, the repo should look like this:
     ```bash
     .
     ├── data
-    ├── doc
     ├── instructions
     ├── LICENSE
     ├── README.md
