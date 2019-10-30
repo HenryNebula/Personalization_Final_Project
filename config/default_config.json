@@ -1,0 +1,30 @@
+{
+  "ml-1m-full": {
+    "partition_by": "user",
+    "min_ratings": 1,
+    "data_file": "data/ml-1m/ratings.dat",
+    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
+    "cache_path": "/home/ds2019/log"
+  },
+  "ml-1m-sampled": {
+    "partition_by": "user",
+    "min_ratings": 5,
+    "data_file": "data/ml-1m/ratings.dat",
+    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
+    "cache_path": "/home/ds2019/log"
+  },
+  "ml-20m-sampled": {
+    "partition_by": "user",
+    "min_ratings": 5,
+    "data_file": "data/ml-20m/ratings.dat",
+    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
+    "cache_path": "/home/ds2019/log"
+  },
+  "ml-20m-full": {
+    "partition_by": "user",
+    "min_ratings": 1,
+    "data_file": "data/ml-20m/ratings.dat",
+    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
+    "cache_path": "/home/ds2019/log"
+  }
+}

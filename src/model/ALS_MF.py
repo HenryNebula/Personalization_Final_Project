@@ -1,13 +1,16 @@
 from pyspark.sql import DataFrame
 from pyspark.ml.recommendation import ALS
-from src.BaseModel import BaseModel
+from src.model.BaseModel import BaseModel
 
 
 class ALS_MF(BaseModel):
     def __init__(self, params: dict):
-        super().__init__()
-        self.params = params
-        self.als = ALS(**self.params)
+        super().__init__(params)
+        self.als = ALS(implicitPrefs=False,
+                       coldStartStrategy="drop",
+                       alpha=0,
+                       nonnegative=False,
+                       **self.params)
         self.model = None
 
     def _check_model(self):
@@ -22,7 +25,7 @@ class ALS_MF(BaseModel):
         recommendations = self.model.recommendForAllUsers(top_n)
         return recommendations
 
-    def recommend_for_pairs(self, ui_pairs: DataFrame):
+    def transform(self, ui_pairs: DataFrame):
         self._check_model()
-        ui_recommendations = self.model.transform(ui_pairs)
-        return ui_recommendations
+        pair_recommendations = self.model.transform(ui_pairs)
+        return pair_recommendations
