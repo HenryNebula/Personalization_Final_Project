@@ -62,5 +62,3 @@ Say if you want to debug your own model using existing methods and functions, fo
 2. Copy [this notebook](./recsys_all_in_one.ipynb) to your "test" directory.
 
 3. Do all of your testing in the copied notebook. Happy debugging!
-
-## Test
