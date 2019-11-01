@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
-from pyspark.mllib.evaluation import RankingMetrics
+from pyspark.mllib.evaluation import RankingMetrics, RegressionMetrics
 from src.data_pipeline.Config import Config
 from src.model.BaseModel import BaseModel
 from collections import ChainMap
@@ -18,7 +18,9 @@ class Evaluator:
         self.top_k = top_k
         self.__spark = spark
 
-        is_ranking_metric = {"ndcg": True, "precision": True}
+        is_ranking_metric = {"ndcg": True, "precision": True,
+                             "rmse": False, "mae": False, "rsquared": False}
+
         diff_metrics = set(metrics).difference(set(is_ranking_metric))
         if diff_metrics:
             raise ValueError("Metric(s) {{}} not supported yet, only these are supported: {}." \
@@ -57,9 +59,25 @@ class Evaluator:
         return results
 
     def __evaluate_rating(self, rat_inf: DataFrame):
-        print("Dummy printing of test set count in Evaluator.__evaluate_rating(): {}"
-              .format(self.__test.count()))
-        return {}
+
+        # RegressionMetrics
+        pred_with_labels = rat_inf.select(
+            col("rating").cast("double").alias("label"),
+            col("prediction").cast("double"))
+
+        metrics = RegressionMetrics(pred_with_labels.rdd.map(lambda x: (x.prediction, x.label)))
+
+        results = {}
+
+        for m in self.regression_metrics:
+            if m == "rmse":
+                results[m] = metrics.rootMeanSquaredError
+            elif m == "mae":
+                results[m] = metrics.meanAbsoluteError
+            elif m == "rsquared":
+                results[m] = metrics.r2
+
+        return results
 
     def __get_paths(self,
                     model: BaseModel,
