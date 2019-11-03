@@ -36,6 +36,7 @@ class DataLoader:
             .add(StructField(header[3], LongType()))
 
         if "ml-1m" in self.__dataset_name:
+
             raw_data = self.__spark.sparkContext.textFile(data_path)
             lines = raw_data.map(lambda l: l.split("::")) \
                 .map(lambda part: [int(part[0]), int(part[1]), float(part[2]), int(part[3])])

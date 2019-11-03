@@ -74,7 +74,6 @@ def cross_validation(data_loader,
     train_whole = data_loader.get_train_set()
     train_whole.cache()
     exp_count = int(train_whole.count()) / k_fold
-
     for k in range(k_fold):
         ratio_range = [k / k_fold, (k + 1) / k_fold]
         train, test = train_test_split(data_loader.get_train_set(),
