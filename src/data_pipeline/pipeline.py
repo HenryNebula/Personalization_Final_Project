@@ -6,9 +6,36 @@ from collections import defaultdict
 # todo: fix cyclic importing issue of DataLoader class
 
 
+def sample_dataset(data: DataFrame,
+                   sample_ratio=0.2,
+                   seed=24):
+
+    if sample_ratio <= 0:
+        raise ValueError("{} must be greater than 0".format(sample_ratio))
+
+    if sample_ratio >= 1:
+        return data
+
+    user_window = Window.orderBy("user")
+    item_window = Window.orderBy("item")
+
+    mod = int(1 / sample_ratio)
+
+    subset = (data
+              .filter(col("user") % mod == 0)
+              .filter(col("item") % mod == 0)
+              .withColumn("user_dense", dense_rank().over(user_window))
+              .withColumn("item_dense", dense_rank().over(item_window))
+              .selectExpr("user_dense as user", "item_dense as item", "rating", "ts"))
+
+    # subset.cache()
+    print("Using sampled subset with {0:E} records".format(subset.count()))
+
+    return subset
+
+
 def train_test_split(data: DataFrame,
                      ratio_range=(0, 0.2),
-                     min_ratings=1,
                      partition_by="user",
                      seed=42):
     lb, rb = ratio_range
@@ -23,7 +50,6 @@ def train_test_split(data: DataFrame,
     train = df_with_rank.filter(~condition).drop("percentRank")
     test = df_with_rank.filter(condition).drop("percentRank")
 
-    test.cache()
     print("Using split of range {}, test set contains {} of {} records in total.".format(
         ratio_range, test.count(), data.count()))
 
@@ -35,7 +61,7 @@ def cross_validation(data_loader,
                      spark: SparkSession,
                      k_fold=5,
                      metrics=("ndcg", "precision"),
-                     num_candidates=500,  # a threshold for evaluation, much bigger than top_k
+                     num_candidates=200,  # a threshold for evaluation, much bigger than top_k
                      top_k=5,
                      force_rewrite=False):
     result = defaultdict(list)
@@ -45,6 +71,9 @@ def cross_validation(data_loader,
 
     evaluator = Evaluator(metrics, top_k, spark)
 
+    train_whole = data_loader.get_train_set()
+    train_whole.cache()
+    exp_count = int(train_whole.count()) / k_fold
     for k in range(k_fold):
         ratio_range = [k / k_fold, (k + 1) / k_fold]
         train, test = train_test_split(data_loader.get_train_set(),
@@ -58,8 +87,10 @@ def cross_validation(data_loader,
                                        fold=k,
                                        num_candidates=num_candidates,
                                        force_rewrite=force_rewrite)
+        real_count = int(test.count())
+        correction = real_count / exp_count
         for m in pref_dict:
-            result[m].append(pref_dict[m])
+            result[m].append(pref_dict[m] * correction)
         # TODO: add summary value
 
     return result
@@ -69,7 +100,7 @@ def test_evaluation(data_loader,
                     model: BaseModel,
                     spark: SparkSession,
                     metrics=("ndcg", "precision"),
-                    num_candidates=500,  # a threshold for evaluation, much bigger than top_k
+                    num_candidates=200,  # a threshold for evaluation, much bigger than top_k
                     top_k=5,
                     force_rewrite=False,
                     oracle_type=None):

@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
+import pyspark.sql.functions as f
 from pathlib import Path
 
 
@@ -19,3 +20,16 @@ def load_parquet(spark: SparkSession, path: Path) -> DataFrame:
     else:
         data = None
     return data
+
+
+def get_stats(df: DataFrame,
+              group="user",
+              agg_name="count"):
+
+    if agg_name == "count":
+        stats = (df
+                 .groupBy(group)
+                 .count()
+                 .withColumnRenamed("count", "record_count"))
+
+        return [int(row.record_count) for row in stats.collect()]

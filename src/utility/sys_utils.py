@@ -4,11 +4,13 @@ from pathlib import Path
 
 
 def get_spark(name="Recsys", cores=2) -> SparkSession:
-    spark = SparkSession \
-        .builder \
-        .appName(name) \
-        .master("local[{}]".format(cores)) \
-        .getOrCreate()
+    spark = (SparkSession
+             .builder
+             .appName(name)
+             .master("local[{}]".format(cores))
+             .config("spark.memory.offHeap.enabled", True)
+             .config("spark.memory.offHeap.size", "16g")
+             .getOrCreate())
     return spark
 
 

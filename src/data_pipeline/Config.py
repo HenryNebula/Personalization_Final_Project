@@ -5,7 +5,7 @@ from collections import namedtuple
 
 Config = namedtuple("Config", ["dataset_name",
                                "partition_by",
-                               "min_ratings",
+                               "sample_ratio",
                                "data_file",
                                "db_path",
                                "cache_path"])
