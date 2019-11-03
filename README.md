@@ -27,18 +27,23 @@ Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of a
 
 ## Structure of repo
 
-* [Data pipeline function](src/data_pipeline.py), including data loading function, train-test split and cross-validation. A more detailed example can be found at [this notebook]() at root dir. 
-
-    For now, the cross validation method doesn't support result caching and doesn't have an aggregation function for different metrics and folds. These features will be added soon, so for now, manually tuning hyper-parameters is needed. 
+* [Data loading modules](src/data_pipeline/), including data loader, train-test split and cross-validation. 
+    * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data, it splits train/test set once initilized
+    * [Data_Loader](src/data_pipeline/Config.py) parses and loads configuration from json files under config folder The default is good for a try. If you want to create a different configuration, be sure to change the name of the configuration (i.e, the name of dataset). Otherwisem it will cause inconsistency in the database. Later commits will try to check this inconsistency automatically and throw an error if the check fails.
+    * [pipeline](src/data_pipeline/pipeline.py) includes cross_validation and test_performance function.
+    
 * Models:
-    * [Base model](src/BaseModel.py) to inherit from
-    * [ALS_MF](src/ALS_MF.py) an inheritance example, using ALS method
+    * [Base model](src/model/BaseModel.py) all models should inherit from this base model by overloading three specfic functions, namely fit(), transform() and recommend_for_all_users(). Check the annotation of the input parameters for more details.
+    * [ALS_MF](src/model/ALS_MF.py) an inheritance example which is wrapper using ALS method from Spark Mllib.
     * kNN model is still on progress
-   
-   Note that every new model should override at least two functions of the base class, which are [fit](./src/BaseModel.py) and [recommend_for_all_users](./src/BaseModel.py).
-* [Evaluation module](src/Evaluator.py), only two ranking metrics are supported now (i.e., NDCG and Precision).
-* [Utilities](src/utils.py) like constructing a spark session
-* [Dataset](./data/) only supports ml-1m dataset for now. ml-20m will be uploaded soon.
+
+* Evaluations:
+    * [Evaluator](src/evaluation/Evaluator.py) no need to construct an instance of this manually, high level functions in pipeline parts call it already.
+
+* Utilities:
+    * [Database tools](src/utility/DBUtils.py) handle the definition and insertion of a database, where the records of cross_validation and tests are saved. It will bring much convenience of tuning hyper parameters and model selections.
+    * [Summary](src/utility/Summary.py) provides functions to query the database, basically summarzing the cross validation results across all folds and fetching result for the final test evaluation.
+    * [Others] other two files end in "utils" include functions for handling paths and model result saving.
 
 ## Local testing and debugging
 Say if you want to debug your own model using existing methods and functions, follow the following step:
@@ -57,5 +62,3 @@ Say if you want to debug your own model using existing methods and functions, fo
 2. Copy [this notebook](./recsys_all_in_one.ipynb) to your "test" directory.
 
 3. Do all of your testing in the copied notebook. Happy debugging!
-
-## Test
