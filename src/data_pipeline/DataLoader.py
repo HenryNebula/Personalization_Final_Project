@@ -3,7 +3,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pathlib import Path
 from src.data_pipeline.Config import parse_config
-from src.data_pipeline.pipeline import train_test_split, sample_dataset
+from src.data_pipeline.pipeline import train_test_split, sample_dataset, filter_outlier_user
 
 
 class DataLoader:
@@ -47,12 +47,17 @@ class DataLoader:
         else:
             raise ValueError("{} is an unknown dataset".format(self.__dataset_name))
 
-        # apply down-sampling accordingly
-        return sample_dataset(df, sample_ratio=self.__config.sample_ratio)
+        return df
+
+    def __filter_raw_data(self):
+        filtered_df = filter_outlier_user(self.__raw_data)
+        return sample_dataset(filtered_df,
+                              user_sample_ratio=self.__config.user_sample_ratio,
+                              item_sample_ratio=self.__config.item_sample_ratio)
 
     def __split_dataset(self):
         config = self.__config
-        self.__train_data, self.__test_data = train_test_split(self.__raw_data,
+        self.__train_data, self.__test_data = train_test_split(self.__filter_raw_data(),
                                                                ratio_range=(0, 0.2),
                                                                partition_by=config.partition_by)
 
@@ -64,6 +69,9 @@ class DataLoader:
 
     def get_train_set(self):
         return self.__train_data
+
+    def get_raw_data(self):
+        return self.__raw_data
 
     def get_test_set(self):
         return self.__test_data

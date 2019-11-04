@@ -2,33 +2,53 @@ from pyspark.sql import Window, DataFrame, SparkSession
 from pyspark.sql.functions import *
 from src.model.BaseModel import BaseModel
 from src.evaluation.Evaluator import Evaluator
+from src.utility.model_utils import get_counts
 from collections import defaultdict
+
+
 # todo: fix cyclic importing issue of DataLoader class
 
 
+def filter_outlier_user(data: DataFrame,
+                        threshold=500):
+    columns = data.columns
+    user_record_counts = get_counts(data)
+    filtered_user = user_record_counts.filter(col("record_count") <= threshold)
+    return (data
+            .join(filtered_user, col("user") == col("filteredUser"))
+            .selectExpr(*columns))
+
+
+def sample_rows(df: DataFrame,
+                seed,
+                thresh,
+                column="user"):
+    return (df
+            .dropDuplicates([column])
+            .withColumn("rand", rand(seed))
+            .filter(col("rand") <= thresh)
+            .selectExpr("{0} as filtered_{0}".format(column)))
+
+
 def sample_dataset(data: DataFrame,
-                   sample_ratio=0.2,
+                   item_sample_ratio,
+                   user_sample_ratio,
                    seed=24):
 
-    if sample_ratio <= 0:
-        raise ValueError("{} must be greater than 0".format(sample_ratio))
+    if item_sample_ratio <= 0:
+        raise ValueError("Item sample ratio {} must be greater than 0".format(item_sample_ratio))
 
-    if sample_ratio >= 1:
+    if user_sample_ratio == 1 and item_sample_ratio == 1:
         return data
-
-    user_window = Window.orderBy("user")
-    item_window = Window.orderBy("item")
-
-    mod = int(1 / sample_ratio)
-
+    # fix user ratio as 0.1 of the original dataset
+    data.cache()
     subset = (data
-              .filter(col("user") % mod == 0)
-              .filter(col("item") % mod == 0)
-              .withColumn("user_dense", dense_rank().over(user_window))
-              .withColumn("item_dense", dense_rank().over(item_window))
-              .selectExpr("user_dense as user", "item_dense as item", "rating", "ts"))
+              .join(sample_rows(data, seed, user_sample_ratio, "user"), col("user") == col("filtered_user"))
+              .join(sample_rows(data, seed, item_sample_ratio, "item"), col("item") == col("filtered_item"))
+              .selectExpr("user", "item", "rating", "ts"))
 
-    # subset.cache()
+    data.unpersist()
+    subset.cache()
     print("Using sampled subset with {0:E} records".format(subset.count()))
 
     return subset
@@ -61,7 +81,7 @@ def cross_validation(data_loader,
                      spark: SparkSession,
                      k_fold=5,
                      metrics=("ndcg", "precision"),
-                     num_candidates=200,  # a threshold for evaluation, much bigger than top_k
+                     num_candidates=600,  # a threshold for evaluation, much bigger than top_k
                      top_k=5,
                      force_rewrite=False):
     result = defaultdict(list)
@@ -100,11 +120,10 @@ def test_evaluation(data_loader,
                     model: BaseModel,
                     spark: SparkSession,
                     metrics=("ndcg", "precision"),
-                    num_candidates=200,  # a threshold for evaluation, much bigger than top_k
+                    num_candidates=600,  # a threshold for evaluation, much bigger than top_k
                     top_k=5,
                     force_rewrite=False,
                     oracle_type=None):
-
     oracle_options = (None, "train", "test")
     oracle_type = oracle_type if oracle_type in oracle_options else None
 

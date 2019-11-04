@@ -5,13 +5,15 @@ from collections import namedtuple
 
 Config = namedtuple("Config", ["dataset_name",
                                "partition_by",
-                               "sample_ratio",
+                               "user_sample_ratio",
+                               "item_sample_ratio",
                                "data_file",
                                "db_path",
                                "cache_path"])
 
 Config.__new__.__defaults__ = ("ml-1m-full",
                                "user",
+                               0.1,
                                1,
                                "data/ml-1m/ratings.dat",
                                "sqlite:////home/ds2019/log/meta_data.db",
