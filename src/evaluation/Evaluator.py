@@ -9,6 +9,43 @@ from src.utility.model_utils import load_parquet, save_parquet
 from src.utility import DBUtils
 
 
+def filter_seen(train,
+                recommendations,
+                filter_number):
+    # Only filter users have seen more than <filter_number> movies
+    user_count = train.groupBy("user").count()
+    user_need_filter = user_count.filter(user_count['count'] < filter_number)
+    user_no_filter = user_count.filter(user_count['count'] >= filter_number)
+
+    # Get recommendations set and train set with only users need to be filtered
+    recommendations_filter = (user_need_filter
+                              .join(recommendations, 'user')
+                              .select('user', 'recommendations'))
+
+    train_filter = user_need_filter.join(train, 'user').select('user', 'item', "rating")
+
+    prediction_filter = (recommendations_filter
+                         .withColumn('recs', explode(col('recommendations')))
+                         .select("user", "recs.*")
+                         .select(col("user"), col("item"), col("rating").cast("float").alias("prediction")))
+
+    # Get filtered recommendations
+    join_table = prediction_filter.join(train_filter, ["user", "item"], how='left')
+    filtered_recommendations = (join_table
+                                .filter(col('rating').isNull())
+                                .select('user', 'item', col('prediction').alias('rating'))
+                                .groupby("user")
+                                # collect as list
+                                .agg(collect_list(struct("item", "rating")).alias('recommendations'))
+                                )
+
+    # Add users that do not need filter back to recommendations
+    recommendation_no_filter = user_no_filter.join(recommendations, 'user').select('user', 'recommendations')
+    new_recommendation = filtered_recommendations.union(recommendation_no_filter)
+
+    return new_recommendation
+
+
 class Evaluator:
     def __init__(self,
                  metrics,
@@ -117,7 +154,9 @@ class Evaluator:
             model.fit(train_df)
 
             if not rnk_inf:
-                rnk_inf = model.recommend_for_all_users(num_candidates)
+                recommendations = model.recommend_for_all_users(num_candidates)
+                # apply filtering here
+                rnk_inf = filter_seen(train_df, recommendations, num_candidates)
                 save_parquet(rnk_inf_path, rnk_inf)
 
             if not rat_inf:

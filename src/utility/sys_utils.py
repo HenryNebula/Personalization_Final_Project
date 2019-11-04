@@ -10,7 +10,10 @@ def get_spark(name="Recsys", cores=2) -> SparkSession:
              .master("local[{}]".format(cores))
              .config("spark.memory.offHeap.enabled", True)
              .config("spark.memory.offHeap.size", "16g")
+             .config("spark.local.dir", "/tmp/spark-temp")
              .getOrCreate())
+
+    spark.sparkContext.setCheckpointDir("/tmp/spark-temp/chkpts")
     return spark
 
 

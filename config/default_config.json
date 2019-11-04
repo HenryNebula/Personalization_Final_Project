@@ -1,42 +1,43 @@
 {
   "ml-1m-full": {
     "partition_by": "user",
-    "sample_ratio": 1,
+    "item_sample_ratio": 1,
+    "user_sample_ratio": 1,
     "data_file": "data/ml-1m/ratings.dat",
     "db_path": "sqlite:////home/ds2019/log/meta_data.db",
     "cache_path": "/home/ds2019/log"
   },
   "ml-1m-50p": {
     "partition_by": "user",
-    "sample_ratio": 0.5,
+    "item_sample_ratio": 0.5,
     "data_file": "data/ml-1m/ratings.dat",
     "db_path": "sqlite:////home/ds2019/log/meta_data.db",
     "cache_path": "/home/ds2019/log"
   },
   "ml-20m-20p": {
     "partition_by": "user",
-    "sample_ratio": 0.2,
-    "data_file": "data/ml-20m/ratings.csv",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
-  },
-    "ml-20m-15p": {
-    "partition_by": "user",
-    "sample_ratio": 0.1,
+    "item_sample_ratio": 0.2,
     "data_file": "data/ml-20m/ratings.csv",
     "db_path": "sqlite:////home/ds2019/log/meta_data.db",
     "cache_path": "/home/ds2019/log"
   },
   "ml-20m-10p": {
     "partition_by": "user",
-    "sample_ratio": 0.1,
+    "item_sample_ratio": 0.1,
     "data_file": "data/ml-20m/ratings.csv",
     "db_path": "sqlite:////home/ds2019/log/meta_data.db",
     "cache_path": "/home/ds2019/log"
   },
     "ml-20m-5p": {
     "partition_by": "user",
-    "sample_ratio": 0.05,
+    "item_sample_ratio": 0.05,
+    "data_file": "data/ml-20m/ratings.csv",
+    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
+    "cache_path": "/home/ds2019/log"
+  },
+    "ml-20m-50p": {
+    "partition_by": "user",
+    "item_sample_ratio": 0.5,
     "data_file": "data/ml-20m/ratings.csv",
     "db_path": "sqlite:////home/ds2019/log/meta_data.db",
     "cache_path": "/home/ds2019/log"
