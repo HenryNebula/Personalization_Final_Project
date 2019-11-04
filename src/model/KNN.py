@@ -121,7 +121,7 @@ def get_rec(scores, topN):
            .filter(col('rank') <= topN)
 
            # struct for every entry in the final nested list
-           .withColumn("item_score", struct(col("item_inf").alias("item"), col("score")))
+           .withColumn("item_score", struct(col("item_inf").alias("item"), col("score").alias("rating")))
 
            # collect list
            .groupby('user')

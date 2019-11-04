@@ -48,17 +48,15 @@ def get_BL_score(df_BL, model):
         model: a string one of {"avg_rating", "count_uni_rating", "count_rank_rating"}
     Returns:
         a DF with format [item, score]
-    """ 
+    """
     if model == "avg_rating":
-        score = df_BL.selectExpr("item","avg_rating as score")
+        return df_BL.selectExpr("item","avg_rating as score")
     elif model == "count_uni_rating":
-        score = df_BL.selectExpr("item","count_uni_rating as score")
+        return df_BL.selectExpr("item","count_uni_rating as score")
     elif model == "count_rank_rating":
-        score = df_BL.selectExpr("item","count_rank_rating as score")
+        return df_BL.selectExpr("item","count_rank_rating as score")
     else:
-        score = None
-    
-    return score
+        raise ValueError("Invalid baseline method {}".format(model))
     
 def get_rec(score, userls, topN):
     """get recommendation for all users. same recommendation for all
@@ -73,7 +71,8 @@ def get_rec(score, userls, topN):
     rec = score.select("*",
              rank().over(Window.orderBy(score['score'].desc())).alias("rank"))\
         .filter(col('rank') <= topN)\
-        .selectExpr("*","(item, score) as recommendation")\
+        .withColumnRenamed("score", "rating") \
+        .selectExpr("*","(item, rating) as recommendation")\
         .agg(collect_list(struct('rank','recommendation')).alias('a'))\
         .select(sort_array('a')['recommendation'].alias('recommendations'))
       
