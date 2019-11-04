@@ -47,7 +47,15 @@ Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of a
 
 ## Local testing and debugging
 Say if you want to debug your own model using existing methods and functions, follow the following step:
-1. Create a directory called "test" under the root directory and after this step, the repo should look like this:
+
+1. extract ML20M dataset first from the zip file
+    ```bash
+    # suppose you are in the root dir of this repo
+    cd data/
+    unzip ml-20m.zip
+    ``` 
+
+2. Create a directory called "test" under the root directory and after this step, the repo should look like this:
     ```bash
     .
     ├── data
@@ -59,6 +67,6 @@ Say if you want to debug your own model using existing methods and functions, fo
     └── test
     ```
     It will not be included in version control since it's set ignored.
-2. Copy [this notebook](./recsys_all_in_one.ipynb) to your "test" directory.
+3. Copy [this notebook](./recsys_all_in_one.ipynb) to your "test" directory.
 
-3. Do all of your testing in the copied notebook. Happy debugging!
+4. Do all of your testing in the copied notebook. Happy debugging!
