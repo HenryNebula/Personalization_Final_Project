@@ -98,9 +98,10 @@ class Evaluator:
     def __evaluate_rating(self, rat_inf: DataFrame):
 
         # RegressionMetrics
-        pred_with_labels = rat_inf.select(
-            col("rating").cast("double").alias("label"),
-            col("prediction").cast("double"))
+        pred_with_labels = (rat_inf
+                            .fillna(0)
+                            .select(col("rating").cast("double").alias("label"),
+                                    col("prediction").cast("double")))
 
         metrics = RegressionMetrics(pred_with_labels.rdd.map(lambda x: (x.prediction, x.label)))
 
@@ -139,13 +140,14 @@ class Evaluator:
                  model: BaseModel,
                  fold,
                  num_candidates,
-                 force_rewrite):
+                 force_rewrite,
+                 caching=True):
 
         rnk_inf_path, rat_inf_path = self.__get_paths(model, data_config, fold)
 
         rnk_inf, rat_inf = None, None
 
-        if not force_rewrite:
+        if caching and not force_rewrite:
             # load cache by default (if exists)
             rnk_inf = load_parquet(self.__spark, rnk_inf_path)
             rat_inf = load_parquet(self.__spark, rat_inf_path)
@@ -157,11 +159,13 @@ class Evaluator:
                 recommendations = model.recommend_for_all_users(num_candidates)
                 # apply filtering here
                 rnk_inf = filter_seen(train_df, recommendations, num_candidates)
-                save_parquet(rnk_inf_path, rnk_inf)
+                if caching:
+                    save_parquet(rnk_inf_path, rnk_inf)
 
             if not rat_inf:
                 rat_inf = model.transform(test_df)
-                save_parquet(rat_inf_path, rat_inf)
+                if caching:
+                    save_parquet(rat_inf_path, rat_inf)
 
         self.__load_test(test_df)
         rank_dict = self.__evaluate_ranking(rnk_inf)
