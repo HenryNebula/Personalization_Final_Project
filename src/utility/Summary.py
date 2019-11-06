@@ -10,8 +10,8 @@ class Summary:
         self.table = None
         self.__update_table()
 
-    @classmethod
-    def __get_latest_result(cls, df, group_list):
+    @staticmethod
+    def __get_latest_result(df, group_list):
         latest = (df.assign(rnk=df.groupby(group_list)['ts']
                         .rank(method='first', ascending=False))) \
             .query('rnk < 2') \

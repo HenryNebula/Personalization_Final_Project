@@ -21,7 +21,7 @@ class ALS_MF(BaseModel):
             raise ValueError("run fit() before making any inferences")
 
     def fit(self, train_df: DataFrame):
-        num_neg = 0 if "num_neg" in self.params else self.params["num_neg"]
+        num_neg = 0 if "num_neg" not in self.params else self.params["num_neg"]
         self.model = self.als.fit(self.negative_sampling(train_df, num_neg))
 
     def recommend_for_all_users(self, top_n):
