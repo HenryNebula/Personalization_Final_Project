@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession, DataFrame
 from pathlib import Path
+from functools import wraps
+from time import time
 
 
 def save_parquet(path: Path, df: DataFrame):
@@ -32,3 +34,17 @@ def get_counts(df: DataFrame,
 
 def count_df_to_list(stats: DataFrame):
     return [int(row.record_count) for row in stats.collect()]
+
+
+def timeit(f):
+    # decorator for timing a function
+    # using sample code from https://stackoverflow.com/questions/1622943/timeit-versus-timing-decorator
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        ts = time()
+        result = f(*args, **kwargs)
+        te = time()
+        print("It took function {0} {1: 2.4f} seconds to run with parameters [{2}, {3}]"
+              .format(f.__name__, te-ts, args, kwargs))
+        return result
+    return wrap

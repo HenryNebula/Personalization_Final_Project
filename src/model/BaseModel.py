@@ -27,6 +27,8 @@ class BaseModel:
                           train_df: DataFrame,
                           seed=42,
                           num_neg=3):
+        if num_neg == 0:
+            return train_df
         set_seed(seed)
         base = train_df.drop("ts").cache()
         item_num = train_df.agg(approx_count_distinct(col("item")).alias("count")).collect()[0]["count"]

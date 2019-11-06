@@ -123,6 +123,7 @@ def test_evaluation(data_loader,
                     num_candidates=600,  # a threshold for evaluation, much bigger than top_k
                     top_k=5,
                     force_rewrite=False,
+                    caching=True,
                     oracle_type=None):
     oracle_options = (None, "train", "test")
     oracle_type = oracle_type if oracle_type in oracle_options else None
@@ -141,5 +142,6 @@ def test_evaluation(data_loader,
                                    model=model,
                                    fold=-1,
                                    num_candidates=num_candidates,
-                                   force_rewrite=force_rewrite)
+                                   force_rewrite=force_rewrite,
+                                   caching=caching)
     return pref_dict
