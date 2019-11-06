@@ -5,6 +5,7 @@ import numpy as np
 
 
 class Summary:
+    # use a sqlite database to save and fetch experiment results
     def __init__(self, db_path):
         self.__engine = get_engine(db_path)
         self.table = None

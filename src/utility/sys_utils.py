@@ -1,19 +1,22 @@
 from pyspark.sql import SparkSession, DataFrame
 from src.model.BaseModel import BaseModel
 from pathlib import Path
+import os
 
 
-def get_spark(name="Recsys", cores=2) -> SparkSession:
+def get_spark(name="Recsys", cores=2, local_dir="/tmp/spark-temp") -> SparkSession:
+    # make sure the local_dir exists in your file system
+    # default settings work for linux
     spark = (SparkSession
              .builder
              .appName(name)
              .master("local[{}]".format(cores))
              .config("spark.memory.offHeap.enabled", True)
              .config("spark.memory.offHeap.size", "16g")
-             .config("spark.local.dir", "/tmp/spark-temp")
+             .config("spark.local.dir", local_dir)
              .getOrCreate())
 
-    spark.sparkContext.setCheckpointDir("/tmp/spark-temp/chkpts")
+    spark.sparkContext.setCheckpointDir(os.path.join(local_dir, "chkpts/"))
     return spark
 
 

@@ -6,9 +6,6 @@ from src.utility.model_utils import get_counts
 from collections import defaultdict
 
 
-# todo: fix cyclic importing issue of DataLoader class
-
-
 def filter_outlier_user(data: DataFrame,
                         threshold=500):
     columns = data.columns
@@ -59,7 +56,6 @@ def train_test_split(data: DataFrame,
                      partition_by="user",
                      seed=42):
     lb, rb = ratio_range
-    # TODO: min ratings filtering
 
     order_func = rand(seed=seed)
     window = Window.partitionBy(partition_by).orderBy(order_func)
@@ -84,6 +80,18 @@ def cross_validation(data_loader,
                      num_candidates=600,  # a threshold for evaluation, much bigger than top_k
                      top_k=5,
                      force_rewrite=False):
+    """
+    Conduct cross validation on the dataset
+    :param data_loader: DataLoader object to load data
+    :param model: BaseModel object
+    :param spark: Spark Session
+    :param k_fold: number of folds used in cross validation
+    :param metrics: a list of metrics to evaluate
+    :param num_candidates: number of candidates used in caching, much bigger than top-k
+    :param top_k: number of final recommendations, e.g., NDCG@k
+    :param force_rewrite: rewrite existing model results or not
+    :return:
+    """
     result = defaultdict(list)
 
     if k_fold < 3:
@@ -111,7 +119,6 @@ def cross_validation(data_loader,
         correction = real_count / exp_count
         for m in pref_dict:
             result[m].append(pref_dict[m] * correction)
-        # TODO: add summary value
 
     return result
 
@@ -120,11 +127,25 @@ def test_evaluation(data_loader,
                     model: BaseModel,
                     spark: SparkSession,
                     metrics=("ndcg", "precision"),
-                    num_candidates=600,  # a threshold for evaluation, much bigger than top_k
+                    num_candidates=600,
                     top_k=5,
                     force_rewrite=False,
                     caching=True,
                     oracle_type=None):
+    """
+    evaluate a certain model on the test set
+
+    :param data_loader: DataLoader object to load data
+    :param model: BaseModel object
+    :param spark: Spark Session
+    :param metrics: a list of metrics to evaluate
+    :param num_candidates: number of candidates used in caching, much bigger than top-k
+    :param top_k: number of final recommendations, e.g., NDCG@k
+    :param force_rewrite: rewrite existing model results or not
+    :param caching: use caching system to save model outputs or not
+    :param oracle_type: show evaluation result on the same dataset used in the training process
+    :return:
+    """
     oracle_options = (None, "train", "test")
     oracle_type = oracle_type if oracle_type in oracle_options else None
 

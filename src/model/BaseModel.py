@@ -27,6 +27,7 @@ class BaseModel:
                           train_df: DataFrame,
                           seed=42,
                           num_neg=3):
+        # apply negative sampling to training data
         if num_neg == 0:
             return train_df
         set_seed(seed)
@@ -47,6 +48,7 @@ class BaseModel:
         return augment_train
 
     def binarize(self, train_df):
+        # binarize the rating to binary records
         return (train_df
                 .withColumn("bin_rating", lit(1))
                 .selectExpr("user", "item", "bin_rating as rating"))

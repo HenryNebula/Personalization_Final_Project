@@ -142,6 +142,9 @@ class Evaluator:
                  num_candidates,
                  force_rewrite,
                  caching=True):
+        
+        # save recommendation results to disk if caching is set to True
+        # so that future evaluation will based on cached rankings to accelerate the computation
 
         rnk_inf_path, rat_inf_path = self.__get_paths(model, data_config, fold)
 
