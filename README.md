@@ -1,6 +1,8 @@
 # Personalization_Proj1
 First project for IEOR 4571: Personalizaton Theory and Application
 
+Group members: Chao Huang (ch3474) <ch3474@columbia.edu>, Lin Jiang (lj2493) <lj2493@columbia.edu>, Shuo Yang (sy2886) <sy2886@columbia.edu>, Han Xu (hx2282) <hx2282@columbia.edu>.
+
 ## Description
 
 Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of algorithms, namely neighborhood-based and MF-based models, using PySpark. It is expected to mimic the scenario of a digital media company that needs to recommend movies. **The final report can be found [here](report/Personalization_Project1_report.pdf).**
