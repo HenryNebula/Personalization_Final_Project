@@ -3,7 +3,7 @@ First project for IEOR 4571: Personalizaton Theory and Application
 
 ## Describtion
 
-Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of algorithms, namely neighborhood-based and MF-based models, using PySpark. It is expected to mimic the scenario of a a digital media company that needs to recommend movies. Several underlying problems including sampling of dataset, evaluation metrics and business analysis of the output require careful considerations.
+Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of algorithms, namely neighborhood-based and MF-based models, using PySpark. It is expected to mimic the scenario of a digital media company that needs to recommend movies. Several underlying problems including sampling of dataset, evaluation metrics and business analysis of the output require careful considerations.
 
 ## Problems to solve
 
@@ -19,13 +19,13 @@ Build and test a demo Recsys on ML-20M dataset, with two fundamental groups of a
 
 * Data pipeline (load/sample/split)
 * Model implementation (unified API)
-* Inference and evaluation module (HR@K/Precision@K/Recall@5/NDCG@5)
+* Inference and evaluation module (Precision@K/NDCG@K)
 * Parameter tuning system and logger
 * Result interpretation (graph+table)
 * Re-iterate training method
 
 
-## Structure of repo
+## Structure of code
 
 * [Data loading modules](src/data_pipeline/), including data loader, train-test split and cross-validation. 
     * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data, it splits train/test set once initilized
