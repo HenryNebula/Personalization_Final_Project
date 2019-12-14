@@ -105,6 +105,17 @@ venv.bak/
 
 # test dir
 test/
+
+# idea files
 doc/
 .idea/
-data/ml-20m/
+
+# data and log dir or simbolic links
+data/
+data
+log/
+log
+
+# custom config
+config/*
+!config/default_config.json

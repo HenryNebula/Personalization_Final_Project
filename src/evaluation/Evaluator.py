@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import SparkSession, DataFrame as SparkDF
 from pyspark.sql.functions import *
 from pyspark.mllib.evaluation import RankingMetrics, RegressionMetrics
 from src.data_pipeline.Config import Config
@@ -7,43 +7,7 @@ from collections import ChainMap
 from src.utility.sys_utils import construct_path
 from src.utility.model_utils import load_parquet, save_parquet
 from src.utility import DBUtils
-
-
-def filter_seen(train,
-                recommendations,
-                filter_number):
-    # Only filter users have seen more than <filter_number> movies
-    user_count = train.groupBy("user").count()
-    user_need_filter = user_count.filter(user_count['count'] < filter_number)
-    user_no_filter = user_count.filter(user_count['count'] >= filter_number)
-
-    # Get recommendations set and train set with only users need to be filtered
-    recommendations_filter = (user_need_filter
-                              .join(recommendations, 'user')
-                              .select('user', 'recommendations'))
-
-    train_filter = user_need_filter.join(train, 'user').select('user', 'item', "rating")
-
-    prediction_filter = (recommendations_filter
-                         .withColumn('recs', explode(col('recommendations')))
-                         .select("user", "recs.*")
-                         .select(col("user"), col("item"), col("rating").cast("float").alias("prediction")))
-
-    # Get filtered recommendations
-    join_table = prediction_filter.join(train_filter, ["user", "item"], how='left')
-    filtered_recommendations = (join_table
-                                .filter(col('rating').isNull())
-                                .select('user', 'item', col('prediction').alias('rating'))
-                                .groupby("user")
-                                # collect as list
-                                .agg(collect_list(struct("item", "rating")).alias('recommendations'))
-                                )
-
-    # Add users that do not need filter back to recommendations
-    recommendation_no_filter = user_no_filter.join(recommendations, 'user').select('user', 'recommendations')
-    new_recommendation = filtered_recommendations.union(recommendation_no_filter)
-
-    return new_recommendation
+import pandas
 
 
 class Evaluator:
@@ -66,21 +30,17 @@ class Evaluator:
         self.ranking_metrics = list(filter(lambda k: is_ranking_metric[k], metrics))
         self.regression_metrics = list(filter(lambda k: not is_ranking_metric[k], metrics))
 
-    def __load_test(self, test_df: DataFrame):
+    def __load_test(self, test_df: SparkDF):
         self.__test = test_df
 
     def __check_test_exists(self):
         if not self.__test:
             raise ValueError("test data not loaded yet")
 
-    def __evaluate_ranking(self, rnk_inf: DataFrame):
-        test_ground_truth = self.__test.groupBy("user") \
-            .agg(collect_list("item").alias("item_gt"))
+    def __evaluate_ranking(self, rnk_inf: SparkDF):
+        test_ground_truth = self.__test.groupBy("user_id").agg(collect_list("business_id").alias("business_gt"))
 
-        pred_with_labels = rnk_inf \
-            .withColumn("pred", col("recommendations.item")) \
-            .join(test_ground_truth, on="user") \
-            .drop("user", "recommendations")
+        pred_with_labels = rnk_inf.join(test_ground_truth, on="user_id").drop("user_id")
 
         metrics = RankingMetrics(pred_with_labels.rdd)
 
@@ -95,12 +55,12 @@ class Evaluator:
 
         return results
 
-    def __evaluate_rating(self, rat_inf: DataFrame):
+    def __evaluate_rating(self, rat_inf: SparkDF):
 
         # RegressionMetrics
         pred_with_labels = (rat_inf
-                            .fillna(0)
-                            .select(col("rating").cast("double").alias("label"),
+                            .na.drop()
+                            .select(col("stars").cast("double").alias("label"),
                                     col("prediction").cast("double")))
 
         metrics = RegressionMetrics(pred_with_labels.rdd.map(lambda x: (x.prediction, x.label)))
@@ -117,8 +77,8 @@ class Evaluator:
 
         return results
 
-    def __get_paths(self,
-                    model: BaseModel,
+    @staticmethod
+    def __get_paths(model: BaseModel,
                     data_config: Config,
                     fold):
         options = [True, False]
@@ -133,9 +93,15 @@ class Evaluator:
 
         return paths
 
+    def __pandas_df_to_spark_df(self, pandas_df):
+        return self.__spark.createDataFrame(pandas_df)
+
     def evaluate(self,
-                 train_df: DataFrame,
-                 test_df: DataFrame,
+                 train_df: pandas.DataFrame,
+                 test_df: pandas.DataFrame,
+                 test_candidates: pandas.DataFrame,
+                 user_side_info: pandas.DataFrame,
+                 item_side_info: pandas.DataFrame,
                  data_config: Config,
                  model: BaseModel,
                  fold,
@@ -156,21 +122,22 @@ class Evaluator:
             rat_inf = load_parquet(self.__spark, rat_inf_path)
 
         if not rnk_inf or not rat_inf or force_rewrite:
-            model.fit(train_df)
+            model.fit(train_df=train_df, user_info=user_side_info, item_info=item_side_info)
 
             if not rnk_inf:
-                recommendations = model.recommend_for_all_users(num_candidates)
-                # apply filtering here
-                rnk_inf = filter_seen(train_df, recommendations, num_candidates)
+                recommendations = model.recommend_on_candidates(test_candidates, num_candidates)
+                rnk_inf = self.__pandas_df_to_spark_df(recommendations)
                 if caching:
                     save_parquet(rnk_inf_path, rnk_inf)
 
             if not rat_inf:
                 rat_inf = model.transform(test_df)
+                rat_inf = self.__pandas_df_to_spark_df(rat_inf)
                 if caching:
                     save_parquet(rat_inf_path, rat_inf)
 
-        self.__load_test(test_df)
+        self.__load_test(self.__pandas_df_to_spark_df(test_df))
+        print("Finish inference phase")
         rank_dict = self.__evaluate_ranking(rnk_inf)
         rate_dict = self.__evaluate_rating(rat_inf)
 

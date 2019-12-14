@@ -1,45 +1,18 @@
 {
-  "ml-1m-full": {
-    "partition_by": "user",
-    "item_sample_ratio": 1,
-    "user_sample_ratio": 1,
-    "data_file": "data/ml-1m/ratings.dat",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
+  "user_10_item_1_exp": {
+    "data_root_path": "/media/ExtHDD01/recsys_data/yelp_dataset/tidy_data/",
+    "user_thresh": 10,
+    "item_thresh": 1,
+    "as_implicit": false,
+    "db_path": "sqlite:////media/ExtHDD01/log/metadata.db",
+    "cache_path": "/media/ExtHDD01/log"
   },
-  "ml-1m-50p": {
-    "partition_by": "user",
-    "item_sample_ratio": 0.5,
-    "data_file": "data/ml-1m/ratings.dat",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
-  },
-  "ml-20m-20p": {
-    "partition_by": "user",
-    "item_sample_ratio": 0.2,
-    "data_file": "data/ml-20m/ratings.csv",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
-  },
-  "ml-20m-10p": {
-    "partition_by": "user",
-    "item_sample_ratio": 0.1,
-    "data_file": "data/ml-20m/ratings.csv",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
-  },
-    "ml-20m-5p": {
-    "partition_by": "user",
-    "item_sample_ratio": 0.05,
-    "data_file": "data/ml-20m/ratings.csv",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
-  },
-    "ml-20m-50p": {
-    "partition_by": "user",
-    "item_sample_ratio": 0.5,
-    "data_file": "data/ml-20m/ratings.csv",
-    "db_path": "sqlite:////home/ds2019/log/meta_data.db",
-    "cache_path": "/home/ds2019/log"
+  "user_10_item_1_imp": {
+    "data_root_path": "/media/ExtHDD01/recsys_data/yelp_dataset/tidy_data/",
+    "user_thresh": 10,
+    "item_thresh": 1,
+    "as_implicit": true,
+    "db_path": "sqlite:////media/ExtHDD01/log/metadata.db",
+    "cache_path": "/media/ExtHDD01/log"
   }
 }
