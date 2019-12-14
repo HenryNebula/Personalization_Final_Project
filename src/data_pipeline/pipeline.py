@@ -72,63 +72,12 @@ def train_test_split(data: DataFrame,
     return train, test
 
 
-def cross_validation(data_loader,
-                     model: BaseModel,
-                     spark: SparkSession,
-                     k_fold=5,
-                     metrics=("ndcg", "precision"),
-                     num_candidates=600,  # a threshold for evaluation, much bigger than top_k
-                     top_k=5,
-                     force_rewrite=False):
-    """
-    Conduct cross validation on the dataset
-    :param data_loader: DataLoader object to load data
-    :param model: BaseModel object
-    :param spark: Spark Session
-    :param k_fold: number of folds used in cross validation
-    :param metrics: a list of metrics to evaluate
-    :param num_candidates: number of candidates used in caching, much bigger than top-k
-    :param top_k: number of final recommendations, e.g., NDCG@k
-    :param force_rewrite: rewrite existing model results or not
-    :return:
-    """
-    result = defaultdict(list)
-
-    if k_fold < 3:
-        ValueError("{} must be great than 3 to be realistic".format(k_fold))
-
-    evaluator = Evaluator(metrics, top_k, spark)
-
-    train_whole = data_loader.get_train_set()
-    train_whole.cache()
-    exp_count = int(train_whole.count()) / k_fold
-    for k in range(k_fold):
-        ratio_range = [k / k_fold, (k + 1) / k_fold]
-        train, test = train_test_split(data_loader.get_train_set(),
-                                       ratio_range,
-                                       **data_loader.get_split_params())
-
-        pref_dict = evaluator.evaluate(train_df=train,
-                                       test_df=test,
-                                       data_config=data_loader.get_config(),
-                                       model=model,
-                                       fold=k,
-                                       num_candidates=num_candidates,
-                                       force_rewrite=force_rewrite)
-        real_count = int(test.count())
-        correction = real_count / exp_count
-        for m in pref_dict:
-            result[m].append(pref_dict[m] * correction)
-
-    return result
-
-
 def test_evaluation(data_loader,
                     model: BaseModel,
                     spark: SparkSession,
-                    metrics=("ndcg", "precision"),
-                    num_candidates=600,
-                    top_k=5,
+                    metrics=("ndcg", "precision", "rmse"),
+                    num_candidates=50,
+                    top_k=10,
                     force_rewrite=False,
                     caching=True,
                     oracle_type=None):
@@ -159,6 +108,9 @@ def test_evaluation(data_loader,
 
     pref_dict = evaluator.evaluate(train_df=train,
                                    test_df=test,
+                                   user_side_info=data_loader.get_user_side_info(),
+                                   item_side_info=data_loader.get_item_side_info(),
+                                   test_candidates=data_loader.get_test_candidates(),
                                    data_config=data_loader.get_config(),
                                    model=model,
                                    fold=-1,
