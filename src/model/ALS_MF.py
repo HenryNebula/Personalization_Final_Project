@@ -1,4 +1,4 @@
-from pyspark.sql import DataFrame
+from pandas import DataFrame
 from pyspark.ml.recommendation import ALS
 from src.model.BaseModel import BaseModel
 
@@ -14,13 +14,11 @@ class ALS_MF(BaseModel):
                        alpha=0,
                        nonnegative=False)
 
-        self.model = None
-
     def _check_model(self):
         if not self.model:
             raise ValueError("run fit() before making any inferences")
 
-    def fit(self, train_df: DataFrame):
+    def fit(self, train_df: DataFrame, user_info=None, item_info=None):
         num_neg = 0 if "num_neg" not in self.params else self.params["num_neg"]
         self.model = self.als.fit(self.negative_sampling(train_df, num_neg))
 

@@ -1,54 +1,51 @@
-from pyspark.sql import DataFrame
-import pyspark.sql.functions as F
-from pyspark.sql.functions import rand, approx_count_distinct, col, lit
-from numpy.random import randint, seed as set_seed
+from pandas import DataFrame
+from pickle import dump, load
+from copy import deepcopy
 
 
 class BaseModel:
     def __init__(self, params: dict):
-        self.params = params
+        self.params = deepcopy(params)
+        self.model = None
+        self.model_name = self.__class__.__name__
 
-    def fit(self, train_df: DataFrame):
+    def fit(self, train_df: DataFrame, user_info: DataFrame, item_info: DataFrame):
         raise NotImplementedError
 
-    def recommend_for_all_users(self, topN):
+    def transform(self, ui_pairs: DataFrame) -> DataFrame:
+        # input as (user_id, business_id, (stars))
+        # return as (user_id, business_id, (stars), prediction)
+
         raise NotImplementedError
 
-    def transform(self, ui_pairs: DataFrame):
-        raise NotImplementedError
+    def recommend_on_candidates(self, candidates: DataFrame, top_n):
+        # input candidates as (user_id, candidate_id)
+        # return as (user_id, recommendations), where recommendations is an ordered array of business_id
+
+        candidates = candidates.rename(columns={"candidate_id": "business_id"})
+        predictions = self.transform(candidates)
+        predictions["rank"] = predictions.groupby("user_id")["prediction"].rank(method="min", ascending=False)
+        predictions = predictions[candidates["rank"] <= top_n]
+        recommendations = (predictions
+                           .sort_values(by="rank", ascending=True)
+                           .groupby("user_id")["business_id"]
+                           .agg(list).reset_index())
+        recommendations.rename(columns={"business_id": "recommendations"})
+        return recommendations
 
     def sort_params_to_list(self):
         return sorted(self.params.items(), key=lambda x: x[0])
 
     def get_name(self):
-        return self.__class__.__name__
+        return self.model_name
 
-    def negative_sampling(self,
-                          train_df: DataFrame,
-                          seed=42,
-                          num_neg=3):
-        # apply negative sampling to training data
-        if num_neg == 0:
-            return train_df
-        set_seed(seed)
-        base = train_df.drop("ts").cache()
-        item_num = train_df.agg(approx_count_distinct(col("item")).alias("count")).collect()[0]["count"]
+    def save_model(self, path):
+        if not self.model:
+            print("Model object is empty for class {}, so model saving is not executed".format(self.get_name()))
+        else:
+            dump(self.model, open(path, "wb"))
 
-        augment_train = base
-        for i in range(num_neg):
-            augment_train = (base
-                             .withColumn("neg_item", (col("item") + randint(low=1, high=item_num)) % item_num)
-                             .withColumn("neg_rating", lit(0))
-                             .selectExpr("user", "neg_item as item", "neg_rating as rating")
-                             .union(augment_train)
-                             .groupBy(["user", "item"])
-                             .agg(F.max("rating").alias("rating"))
-                             )
-        base.unpersist()
-        return augment_train
-
-    def binarize(self, train_df):
-        # binarize the rating to binary records
-        return (train_df
-                .withColumn("bin_rating", lit(1))
-                .selectExpr("user", "item", "bin_rating as rating"))
+    def load_model(self, path):
+        model = load(open(path, "rb"))
+        assert model, "Model is empty, check the pickle file at {}".format(path)
+        self.model = model
