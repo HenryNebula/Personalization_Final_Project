@@ -25,7 +25,7 @@ class BaseModel:
         candidates = candidates.rename(columns={"candidate_id": "business_id"})
         predictions = self.transform(candidates)
         predictions["rank"] = predictions.groupby("user_id")["prediction"].rank(method="min", ascending=False)
-        predictions = predictions[candidates["rank"] <= top_n]
+        predictions = predictions[predictions["rank"] <= top_n]
         recommendations = (predictions
                            .sort_values(by="rank", ascending=True)
                            .groupby("user_id")["business_id"]
