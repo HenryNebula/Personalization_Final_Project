@@ -119,3 +119,4 @@ log
 # custom config
 config/*
 !config/default_config.json
+!config/server_new_config.json
