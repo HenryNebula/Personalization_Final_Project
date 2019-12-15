@@ -1,0 +1,18 @@
+{
+  "user_10_item_1_exp": {
+    "data_root_path": "/home/data/tidy_data/",
+    "user_thresh": 10,
+    "item_thresh": 1,
+    "as_implicit": false,
+    "db_path": "sqlite:////home/data/log/metadata.db",
+    "cache_path": "/home/data/log/"
+  },
+  "user_10_item_1_imp": {
+    "data_root_path": "/home/data/tidy_data/",
+    "user_thresh": 10,
+    "item_thresh": 1,
+    "as_implicit": true,
+    "db_path": "sqlite:////home/data/log/metadata.db",
+    "cache_path": "/home/data/log/"
+  }
+}
