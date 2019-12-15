@@ -13,9 +13,7 @@ class DataLoader:
 
     @staticmethod
     def __construct_abspath(path):
-        cur_file_path = Path(__file__).absolute()
-        abs_path = cur_file_path.parent.parent.parent / path
-        return abs_path
+        return Path(path).absolute()
 
     @staticmethod
     def explicit_to_implicit(df: DataFrame) -> DataFrame:
