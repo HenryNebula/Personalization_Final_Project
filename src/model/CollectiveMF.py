@@ -15,11 +15,11 @@ class CollectiveMF(BaseModel):
 
         # sum of side info weight will be fixed at 50 percent of w_main
         if self.use_item_info and self.use_user_info:
-            w_user = w_main * 0.5 * 0.6
-            w_item = w_main * 0.5 * 0.4
+            w_user = 0.5 * 0.6
+            w_item = 0.5 * 0.4
         else:
-            w_user = w_main * 0.5 * self.use_user_info
-            w_item = w_main * 0.5 * self.use_item_info
+            w_user = 0.5 * self.use_user_info
+            w_item = 0.5 * self.use_item_info
 
         self.model = CMF(w_main=w_main,
                          w_user=w_user,
@@ -47,7 +47,7 @@ class CollectiveMF(BaseModel):
             if self.use_item_info else None
 
         cols_bin_item = [cl for cl in cp_item_info.columns if "bin" in cl] if self.use_item_info else None
-        cols_bin_user = [cl for cl in cp_user_info.columns if "bin" in cl] if self.use_user_info else None
+        cols_bin_user = None
 
         self.model.fit(cp_train_df, item_info=cp_item_info, user_info=cp_user_info,
                        cols_bin_item=cols_bin_item, cols_bin_user=cols_bin_user)
