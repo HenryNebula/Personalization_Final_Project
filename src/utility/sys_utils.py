@@ -33,7 +33,7 @@ def construct_path(dataset,
 
     path = Path(cache_path) \
            / Path(dataset) \
-           / Path(model.__class__.__name__) \
+           / Path(model.get_name()) \
            / Path(params_str) \
            / Path("{}_fold_{}.parquet".format(prefix, fold))
 
