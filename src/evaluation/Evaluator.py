@@ -56,6 +56,10 @@ class Evaluator:
         return results
 
     def __evaluate_rating(self, rat_inf: SparkDF):
+        
+        # lit a 1 for implicit rat_inf
+        if "stars" not in rat_inf.columns:
+            rat_inf = rat_inf.withColumn("stars", lit(1.0))
 
         # RegressionMetrics
         pred_with_labels = (rat_inf
