@@ -4,7 +4,7 @@ import implicit
 from src.model.BaseModel import BaseModel
 
 class BPR(BaseModel):
-    def __init__(self, params: dict):
+    def __init__(self, params):
         super().__init__(params)
         
         self.business_mapping = None
@@ -12,17 +12,16 @@ class BPR(BaseModel):
         self.sparse_user_item = None
         self.sparse_item_user = None
         self.model = None
-        
 
     def fit(self, train_df, user_info, item_info):
         """
         Args:
-            df_train: a DF with 'business_id', 'user_id', 'cool', 'date', 'funny', 'review_id', 'stars', and
+            train_df: a DF with 'business_id', 'user_id', 'cool', 'date', 'funny', 'review_id', 'stars', and
             'useful' as column names respectively.
 
         """
         ## convert to int IDs
-        data = df_train.loc[:,['user_id','business_id','stars']]
+        data = train_df.loc[:,['user_id','business_id','stars']]
         data['user_int_id'] = data['user_id'].astype("category")
         data['business_int_id'] = data['business_id'].astype("category")
 
@@ -44,6 +43,7 @@ class BPR(BaseModel):
                                                              regularization=self.params["regularization"], 
                                                              iterations=self.params["iteration"], 
                                                              learning_rate=self.params["learning_rate"])
+
         self.model.fit(self.sparse_item_user, show_progress=False)
         
         
@@ -57,10 +57,9 @@ class BPR(BaseModel):
             a DF with 'user_id', 'business_id', 'prediction‘ of score
 
         """
-        
-        
         #Get item id
         #Convert string id int int id
+
         item_intids = ui_pairs.merge(self.user_mapping,on = 'user_id')
         item_intids = item_intids.merge(self.business_mapping, on ='business_id' )
         itemids_user = item_intids[['user_int_id','business_int_id']].groupby('user_int_id').agg({'business_int_id':lambda x:
@@ -93,5 +92,3 @@ class BPR(BaseModel):
         user_business_score = itemids_user.drop(columns = ['user_int_id','business_int_id'])
         
         return user_business_score
-        
-      
