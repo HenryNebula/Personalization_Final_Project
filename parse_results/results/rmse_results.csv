@@ -1,0 +1,17 @@
+,model,hyper,metric,value,ts,is_rmse_opt
+0,CollectiveMF_Item,"[('k', 16), ('reg_param', 0.01), ('w_main', 0.5)]",rmse,1.4943555012769771,2019-12-16 08:06:08.523691,False
+1,CollectiveMF_User,"[('k', 16), ('reg_param', 0.01), ('w_main', 0.5)]",rmse,1.4898729515768585,2019-12-16 07:47:19.779780,False
+2,CollectiveMF_Both,"[('k', 4), ('reg_param', 0.01), ('w_main', 1.0)]",rmse,1.4926465353222718,2019-12-16 08:30:18.577571,False
+3,CollectiveMF_No,"[('k', 16), ('reg_param', 0.01), ('w_main', 0.5)]",rmse,1.4914357658182738,2019-12-16 08:18:36.851814,False
+4,surprise_SVD,"[('lr_all', 0.002), ('n_factors', 10), ('reg_all', 0.01)]",rmse,1.325149997405153,2019-12-17 00:00:07.702298,False
+5,surprise_Baseline,"[('reg_i', 20), ('reg_u', 15)]",rmse,1.325249215704114,2019-12-16 19:15:44.848353,False
+6,FMItem,"[('l2_reg_V', 1), ('l2_reg_w', 1), ('model_info_used', 'Item'), ('n_iter', 100), ('rank', 2)]",rmse,2.406458841466745,2019-12-18 05:53:14.661005,False
+7,FMNone,"[('l2_reg_V', 1), ('l2_reg_w', 1), ('model_info_used', 'None'), ('n_iter', 100), ('rank', 8)]",rmse,1.5811876205461148,2019-12-17 10:58:07.156385,False
+8,CollectiveMF_Item,"[('k', 5), ('reg_param', 0.0001), ('w_main', 1.0)]",rmse,1.4246476420534175,2019-12-14 22:24:21.933194,True
+9,CollectiveMF_User,"[('k', 16), ('reg_param', 0.0001), ('w_main', 1.0)]",rmse,1.3985643126656582,2019-12-15 02:04:18.135203,True
+10,CollectiveMF_Both,"[('k', 16), ('reg_param', 0.0001), ('w_main', 1.0)]",rmse,1.3987647259533256,2019-12-15 20:02:48.782114,True
+11,CollectiveMF_No,"[('k', 4), ('reg_param', 0.0001), ('w_main', 1.0)]",rmse,1.4252528235467399,2019-12-15 03:11:26.344267,True
+12,surprise_SVD,"[('lr_all', 0.01), ('n_factors', 10), ('reg_all', 0.1)]",rmse,1.291734245936887,2019-12-15 15:54:20.420640,True
+13,surprise_Baseline,"[('reg_i', 5), ('reg_u', 5)]",rmse,1.2923675755806323,2019-12-16 00:14:33.972334,True
+14,FMItem,"[('l2_reg_V', 1), ('l2_reg_w', 1), ('model_info_used', 'Item'), ('n_iter', 100), ('rank', 2)]",rmse,2.406458841466745,2019-12-18 05:53:14.661005,True
+15,FMNone,"[('l2_reg_V', 1), ('l2_reg_w', 1), ('model_info_used', 'None'), ('n_iter', 100), ('rank', 2)]",rmse,1.4488859976594957,2019-12-17 09:27:18.145961,True
