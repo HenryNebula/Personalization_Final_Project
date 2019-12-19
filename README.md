@@ -1,11 +1,11 @@
-# Personalization_Proj1
+# Personalization_Final
 Final project for IEOR 4571: Personalization Theory and Application
 
 Group members: Chao Huang (ch3474) <ch3474@columbia.edu>, Lin Jiang (lj2493) <lj2493@columbia.edu>, Shuo Yang (sy2886) <sy2886@columbia.edu>, Han Xu (hx2282) <hx2282@columbia.edu>.
 
 ## Description
 
-Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, including MF, ANN, CMF and FM. It is expected to mimic the scenario of recommending a point of interest to a customer. **The final report can be found [here](report/Personalization_Project1_report.pdf).**
+Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, including MF, CMF, FM and BPR. It is expected to mimic the scenario of recommending local business to a user. **The final report can be found [here](report/Personalization_Final_report.pdf).**
 
 ## Problems to solve
 
@@ -21,7 +21,7 @@ Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, incl
 
 * Data pipeline (load/sample/split)
 * Model implementation (unified API)
-* Inference and evaluation module (Precision@K/NDCG@K)
+* Inference and evaluation module (RMSE/NDCG@K)
 * Parameter tuning system and logger with the help of sqlite database
 * Result interpretation (graph+table)
 * Re-iterate training method
@@ -29,14 +29,19 @@ Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, incl
 
 ## Structure of source code
 
-* Data loading modules, including data loader, train-test split and cross-validation. 
-    * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data, it splits train/test set once initialized
+* Data loading modules, including data loader and performance evaluation on test set. 
+    * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data.
     * [Data_Loader](src/data_pipeline/Config.py) parses and loads configuration from json files under config folder The default is good for a try. If you want to create a different configuration file, be sure to change the name of the configuration (i.e, the name of dataset) and follow the instructions listed [here](config/README.md). Otherwise it will cause inconsistency in the database. Later commits will try to check this inconsistency automatically and throw an error if the check fails.
-    * [pipeline](src/data_pipeline/pipeline.py) includes cross_validation and test_performance function.
+    * [pipeline](src/data_pipeline/pipeline.py) includes test_performance function.
     
 * Models:
     * [Base model](src/model/BaseModel.py) all models should inherit from this base model by overloading three specific functions, namely fit() and transform(). Check the annotation of the input parameters for more details.
+    * [BPR](src/model/BPR.py) a model using BPR algorithm from Implicit package.
     * [CollectiveMF](src/model/CollectiveMF.py) a model using CMF algorithm from cmfrec package.
+    * [FM](src/model/FM.py) a model using FM algorithm from fastFM package.
+    * [SVD](src/model/surprise_SVD.py) a vanilla MF model from Surprise package.
+    * [Baseline](src/model/surprise_Baseline.py) a degenerated MF model which only fits bias term, comes from Surprise package as well.
+    * [PureRandom](src/model/PureRandom.py) a pure random guessing model
     
     See "Local testing and debugging" part below if you want to implement a new model and run within this framework.
 
@@ -49,7 +54,7 @@ Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, incl
     * [Others] other two files end with "utils" include functions for handling paths and model result saving.
 
 * Exploratory Data Analysis:
-    * Code and Notebooks of exploratory data analysis and final result plotting can be found [here](src/eda).
+    * Code and Notebooks of exploratory data analysis and final result plotting can be found [here](eda).
 
 ## Local testing and debugging
 Say if you want to debug your own model using existing methods and functions, follow the following step:
