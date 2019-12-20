@@ -5,7 +5,7 @@ Group members: Chao Huang (ch3474) <ch3474@columbia.edu>, Lin Jiang (lj2493) <lj
 
 ## Description
 
-Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, including MF, CMF, FM and BPR. It is expected to mimic the scenario of recommending local business to a user. **The final report can be found [here](report/Personalization_Final_report.pdf).**
+Build and test a demo Recsys for local business recommendations on Yelp 2019 [dataset](https://www.yelp.com/dataset/challenge), with several algorithms, including MF, CMF, FM and BPR. It is expected to mimic the scenario of recommending local business to a user. **The final report can be found [here](report/Personalization_Final_report.pdf).**
 
 ## Problems to solve
 
@@ -26,57 +26,64 @@ Build and test a demo Recsys on yelp 2019 dataset, with several algorithms, incl
 * Result interpretation (graph+table)
 * Re-iterate training method
 
-
 ## Structure of source code
 
+* Data preprocessing code
+  * The preprocessing code is written in notebooks under preprocessing folder. And a tidy version of filtered dataset is published online on Google Cloud Storage [here](https://console.cloud.google.com/storage/browser/recsys101-bucket/tidy_data).
+
 * Data loading modules, including data loader and performance evaluation on test set. 
-    * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data.
-    * [Data_Loader](src/data_pipeline/Config.py) parses and loads configuration from json files under config folder The default is good for a try. If you want to create a different configuration file, be sure to change the name of the configuration (i.e, the name of dataset) and follow the instructions listed [here](config/README.md). Otherwise it will cause inconsistency in the database. Later commits will try to check this inconsistency automatically and throw an error if the check fails.
-    * [pipeline](src/data_pipeline/pipeline.py) includes test_performance function.
-    
+  * [Data_Loader](src/data_pipeline/Data_Loader.py) Major class for loading data.
+  * [Data_Loader](src/data_pipeline/Config.py) parses and loads configuration from json files under config folder The default is good for a try. If you want to create a different configuration file, be sure to change the name of the configuration (i.e, the name of dataset) and follow the instructions listed [here](config/README.md). Otherwise it will cause inconsistency in the database. Later commits will try to check this inconsistency automatically and throw an error if the check fails.
+  * [pipeline](src/data_pipeline/pipeline.py) includes test_performance function.
 * Models:
-    * [Base model](src/model/BaseModel.py) all models should inherit from this base model by overloading three specific functions, namely fit() and transform(). Check the annotation of the input parameters for more details.
-    * [BPR](src/model/BPR.py) a model using BPR algorithm from Implicit package.
-    * [CollectiveMF](src/model/CollectiveMF.py) a model using CMF algorithm from cmfrec package.
-    * [FM](src/model/FM.py) a model using FM algorithm from fastFM package.
-    * [SVD](src/model/surprise_SVD.py) a vanilla MF model from Surprise package.
-    * [Baseline](src/model/surprise_Baseline.py) a degenerated MF model which only fits bias term, comes from Surprise package as well.
-    * [PureRandom](src/model/PureRandom.py) a pure random guessing model
-    
-    See "Local testing and debugging" part below if you want to implement a new model and run within this framework.
+  * [Base model](src/model/BaseModel.py) all models should inherit from this base model by overloading three specific functions, namely fit() and transform(). Check the annotation of the input parameters for more details.
+  * [BPR](src/model/BPR.py) a model using BPR algorithm from [Implicit](https://github.com/benfred/implicit) package.
+  * [CollectiveMF](src/model/CollectiveMF.py) a model using CMF algorithm from [cmfrec](https://github.com/david-cortes/cmfrec) package.
+  * [FM](src/model/FM.py) a model using FM algorithm from [fastFM](https://github.com/ibayer/fastFM) package.
+  * [SVD](src/model/surprise_SVD.py) a vanilla MF model from [Surprise](https://github.com/NicolasHug/Surprise) package.
+  * [Baseline](src/model/surprise_Baseline.py) a degenerated MF model which only fits bias term, comes from Surprise package as well.
+  * [PureRandom](src/model/PureRandom.py) a purely random guessing model
+
+See "Local testing and debugging" part below if you want to implement a new model and run within this framework.
 
 * Evaluations:
-    * [Evaluator](src/evaluation/Evaluator.py) no need to construct an instance of this manually, high level functions in pipeline parts call it already.
+  * [Evaluator](src/evaluation/Evaluator.py) no need to construct an instance of this manually, high level functions in pipeline parts call it already.
 
 * Utilities:
-    * [Database tools](src/utility/DBUtils.py) handle the definition and insertion of a database, where the records of cross_validation and tests are saved. It will bring much convenience of tuning hyper parameters and model selections.
-    * [Summary](src/utility/Summary.py) provides functions to query the database, basically summarizing the cross validation results across all folds and fetching result for the final test evaluation.
-    * [Others] other two files end with "utils" include functions for handling paths and model result saving.
+  * [Database tools](src/utility/DBUtils.py) handle the definition and insertion of a database, where the records of cross_validation and tests are saved. It will bring much convenience of tuning hyper parameters and model selections.
+  * [Summary](src/utility/Summary.py) provides functions to query the database, basically summarizing the cross validation results across all folds and fetching result for the final test evaluation.
+  * [Others] other two files end with "utils" include functions for handling paths and model result saving.
 
 * Exploratory Data Analysis:
-    * Code and Notebooks of exploratory data analysis and final result plotting can be found [here](eda).
+  * Code and Notebooks of exploratory data analysis and final result plotting can be found [here](eda).
 
 ## Local testing and debugging
+
 Say if you want to debug your own model using existing methods and functions, follow the following step:
 
-1. Download dataset from the web. Create a log directory and a data directory (can be somewhere else outside this project directory).
+1. Download the tidy version of filtered dataset [here](https://console.cloud.google.com/storage/browser/recsys101-bucket/tidy_data). Create a log directory and a data directory (can be somewhere else outside this project directory).
 
-2. Create a copy of the [default config file](./config/default_config.json), e.g. as "custom_config.json". Modify the "data_root_path", "db_path", "cache_path" as corresponding 
-**absolute** path you set in step 1. 
+2. Create a copy of the [default config file](./config/default_config.json), e.g. as "custom_config.json". Modify the "data_root_path", "db_path", "cache_path" as corresponding **absolute** path you set in step 1.
 
 3. Create a directory called "test" under the root directory and after this step, the repo should look like this:
+
     ```bash
     .
-    ├── config
     ├── LICENSE
     ├── README.md
+    ├── config
+    ├── eda
+    ├── parse_results_with_visualization
+    ├── preprocessing
     ├── recsys_all_in_one.ipynb
     ├── report
     ├── requirements.txt
     ├── src
     └── test
     ```
+
     It will not be included in version control since it's set ignored.
+
 4. Copy [this notebook](./recsys_all_in_one.ipynb) to your "test" directory.
 
 5. Do all of your testing in the copied notebook. Happy debugging!
