@@ -5,6 +5,6 @@ numpy==1.17.4
 cmfrec==0.5.2.3
 fastFM==0.2.11
 implicit==0.4.2
-pyspark==2.4.4
+pyspark==3.2.2
 scikit_learn==0.22
 surprise==0.1
